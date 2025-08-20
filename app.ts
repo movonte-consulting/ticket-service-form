@@ -32,6 +32,8 @@ class TicketService {
           imgSrc: ["'self'", "data:", "https:"],
         },
       },
+      crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: "cross-origin" }
     }));
 
     // CORS configuration
@@ -49,7 +51,9 @@ class TicketService {
       // En desarrollo, permitir todos los orígenes
       this.app.use(cors({
         origin: true,
-        credentials: true
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept']
       }));
       console.log('CORS: Development mode - allowing all origins');
     } else {
@@ -70,22 +74,28 @@ class TicketService {
         origin: (origin, callback) => {
           console.log('CORS check for origin:', origin);
           
-          // Permitir requests sin origin (como herramientas de desarrollo)
+          // Permitir requests sin origin (como herramientas de desarrollo, Postman, etc.)
           if (!origin) {
+            console.log('CORS: Allowing request without origin (development tool)');
             return callback(null, true);
           }
           
           // Verificar si el origen está en la lista permitida
           if (allowedOrigins.includes(origin)) {
+            console.log('CORS: Origin explicitly allowed:', origin);
             return callback(null, true);
           }
           
-          // Verificar patrones de dominio
+          // Verificar patrones de dominio con wildcards
           const isAllowed = allowedOrigins.some(allowedOrigin => {
-            // Si el origen permitido tiene wildcard
             if (allowedOrigin.includes('*')) {
               const pattern = allowedOrigin.replace('*', '.*');
-              return new RegExp(pattern).test(origin);
+              const regex = new RegExp(pattern);
+              const matches = regex.test(origin);
+              if (matches) {
+                console.log('CORS: Origin matched wildcard pattern:', allowedOrigin, '->', origin);
+              }
+              return matches;
             }
             return allowedOrigin === origin;
           });
@@ -99,17 +109,38 @@ class TicketService {
               origin.includes('localhost') || 
               origin.includes('onrender.com') ||
               origin.includes('github.io')) {
+            console.log('CORS: Origin allowed by development pattern:', origin);
             return callback(null, true);
           }
           
           console.log('CORS blocked origin:', origin);
+          console.log('CORS allowed origins:', allowedOrigins);
           callback(new Error('Not allowed by CORS'));
         },
         credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Origin', 'Accept'],
+        preflightContinue: false,
+        optionsSuccessStatus: 204
       }));
     }
+
+    // Middleware adicional para CORS como respaldo
+    this.app.use((req, res, next) => {
+      // Agregar headers CORS manualmente como respaldo
+      res.header('Access-Control-Allow-Origin', '*');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Origin, Accept');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      
+      // Manejar requests OPTIONS (preflight)
+      if (req.method === 'OPTIONS') {
+        res.status(204).end();
+        return;
+      }
+      
+      next();
+    });
 
     // Logging
     this.app.use(morgan('combined'));
