@@ -8,7 +8,7 @@ NODE_ENV=development
 
 ## Configuración CORS
 ```env
-ALLOWED_ORIGINS=https://chat-grvb.onrender.com,https://movonte.com,http://localhost:3000
+ALLOWED_ORIGINS=https://chat-grvb.onrender.com,https://movonte.com,https://movonte-consulting.github.io,http://localhost:3000
 ```
 
 ## Configuración de Jira (requeridas para crear tickets)

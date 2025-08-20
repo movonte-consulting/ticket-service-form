@@ -38,6 +38,7 @@ class TicketService {
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
       'https://chat-grvb.onrender.com',
       'https://movonte.com',
+      'https://movonte-consulting.github.io',
       'http://localhost:3000',
       'https://ticket-service.onrender.com',
       'https://*.onrender.com'
@@ -56,6 +57,7 @@ class TicketService {
       const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
         'https://chat-grvb.onrender.com',
         'https://movonte.com',
+        'https://movonte-consulting.github.io',
         'http://localhost:3000',
         'http://127.0.0.1:5500',
         'http://127.0.0.1:5501',
@@ -67,18 +69,45 @@ class TicketService {
       this.app.use(cors({
         origin: (origin, callback) => {
           console.log('CORS check for origin:', origin);
-          if (!origin || 
-              allowedOrigins.includes(origin) || 
-              origin.includes('onrender.com') ||
-              origin.includes('127.0.0.1') ||
-              origin.includes('localhost')) {
-            callback(null, true);
-          } else {
-            console.log('CORS blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
+          
+          // Permitir requests sin origin (como herramientas de desarrollo)
+          if (!origin) {
+            return callback(null, true);
           }
+          
+          // Verificar si el origen está en la lista permitida
+          if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+          }
+          
+          // Verificar patrones de dominio
+          const isAllowed = allowedOrigins.some(allowedOrigin => {
+            // Si el origen permitido tiene wildcard
+            if (allowedOrigin.includes('*')) {
+              const pattern = allowedOrigin.replace('*', '.*');
+              return new RegExp(pattern).test(origin);
+            }
+            return allowedOrigin === origin;
+          });
+          
+          if (isAllowed) {
+            return callback(null, true);
+          }
+          
+          // Verificar dominios locales y de desarrollo
+          if (origin.includes('127.0.0.1') || 
+              origin.includes('localhost') || 
+              origin.includes('onrender.com') ||
+              origin.includes('github.io')) {
+            return callback(null, true);
+          }
+          
+          console.log('CORS blocked origin:', origin);
+          callback(new Error('Not allowed by CORS'));
         },
-        credentials: true
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
       }));
     }
 
