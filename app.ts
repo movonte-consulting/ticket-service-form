@@ -2,12 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { LandingController } from './src/controllers/ticket_controller';
 import { HealthController } from './src/controllers/health_controller';
 import { JiraService } from './src/services/jira_service';
 
-dotenv.config();
 
 class TicketService {
   private app: express.Application;
