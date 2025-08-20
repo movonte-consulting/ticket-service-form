@@ -10,7 +10,7 @@ export class JiraService {
 
   constructor() {
     this.baseUrl = process.env.JIRA_BASE_URL || 'https://movonte.atlassian.net';
-    this.projectKey = process.env.JIRA_PROJECT_KEY || 'CONTACT';
+    this.projectKey = process.env.JIRA_PROJECT_KEY || 'DEV';
     
     const email = process.env.JIRA_EMAIL || '';
     const token = process.env.JIRA_API_TOKEN || '';
@@ -34,43 +34,10 @@ export class JiraService {
         labels: ['contacto-web', 'lead']
       };
 
-      // Mapear campos personalizados disponibles en el proyecto TI
-      const emailFieldId = 'customfield_10044';
-      const phoneFieldId = 'customfield_10088';
-      const firstNameFieldId = 'customfield_10103';
-      const lastNameFieldId = 'customfield_10104';
-      const contactFieldId = 'customfield_10288';
-      const customerFieldId = 'customfield_10155';
-      const organizationFieldId = 'customfield_10002';
-      const detailsFieldId = 'customfield_10090';
-
-      // Separar nombre completo en nombre y apellido
-      const nameParts = formData.name.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      // Agregar campos personalizados
-      (fields as any)[emailFieldId] = formData.email;
-      
-      if (formData.phone) {
-        (fields as any)[phoneFieldId] = formData.phone;
-      }
-      
-      (fields as any)[firstNameFieldId] = firstName;
-      (fields as any)[lastNameFieldId] = lastName;
-      (fields as any)[contactFieldId] = formData.name;
-      (fields as any)[customerFieldId] = formData.name;
-      
-      if (formData.company) {
-        (fields as any)[organizationFieldId] = [formData.company];
-      }
-      
-      // Agregar detalles adicionales
-      const details = `Mensaje: ${formData.message}\nOrigen: ${formData.source || 'API'}`;
-      (fields as any)[detailsFieldId] = details;
-
-      console.log('Creating ticket with custom fields for project TI');
+      // Solo usar campos básicos que siempre funcionan
+      console.log('Creating ticket with basic fields only');
       console.log('Project Key:', this.projectKey);
+      console.log('Customer info will be in description only');
 
       const issueData: JiraIssueRequest = { fields };
 

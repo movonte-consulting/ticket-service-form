@@ -57,6 +57,9 @@ class TicketService {
         'https://chat-grvb.onrender.com',
         'https://movonte.com',
         'http://localhost:3000',
+        'http://127.0.0.1:5500',
+        'http://127.0.0.1:5501',
+        'http://127.0.0.1:5502',
         'https://ticket-service.onrender.com',
         'https://*.onrender.com'
       ];
@@ -64,7 +67,11 @@ class TicketService {
       this.app.use(cors({
         origin: (origin, callback) => {
           console.log('CORS check for origin:', origin);
-          if (!origin || allowedOrigins.includes(origin) || origin.includes('onrender.com')) {
+          if (!origin || 
+              allowedOrigins.includes(origin) || 
+              origin.includes('onrender.com') ||
+              origin.includes('127.0.0.1') ||
+              origin.includes('localhost')) {
             callback(null, true);
           } else {
             console.log('CORS blocked origin:', origin);
