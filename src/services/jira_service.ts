@@ -18,46 +18,99 @@ export class JiraService {
   }
 
   async createContactIssue(formData: ContactFormData): Promise<JiraResponse> {
-    const fields: JiraIssueRequest['fields'] = {
-      project: {
-        key: this.projectKey
-      },
-      summary: `Web Contact: ${formData.name} - ${formData.company || 'No company'}`,
-      description: this.formatContactDescriptionADF(formData),
-      issuetype: {
-        name: 'Task'
-      },
-      priority: {
-        name: 'Medium'
-      },
-      labels: ['contacto-web', 'lead']
-    };
+    try {
+      const fields: JiraIssueRequest['fields'] = {
+        project: {
+          key: this.projectKey
+        },
+        summary: `Web Contact: ${formData.name} - ${formData.company || 'No company'}`,
+        description: this.formatContactDescriptionADF(formData),
+        issuetype: {
+          name: 'Task'
+        },
+        priority: {
+          name: 'Medium'
+        },
+        labels: ['contacto-web', 'lead']
+      };
 
-    // Optional custom fields, only add if they exist in the project
-    const emailFieldId = process.env.JIRA_FIELD_EMAIL;
-    const phoneFieldId = process.env.JIRA_FIELD_PHONE;
-    const companyFieldId = process.env.JIRA_FIELD_COMPANY;
+      // Mapear campos personalizados disponibles en el proyecto TI
+      const emailFieldId = 'customfield_10044';
+      const phoneFieldId = 'customfield_10088';
+      const firstNameFieldId = 'customfield_10103';
+      const lastNameFieldId = 'customfield_10104';
+      const contactFieldId = 'customfield_10288';
+      const customerFieldId = 'customfield_10155';
+      const organizationFieldId = 'customfield_10002';
+      const detailsFieldId = 'customfield_10090';
 
-    // Only add custom fields if they are configured and exist
-    if (emailFieldId && emailFieldId.trim() !== '') {
+      // Separar nombre completo en nombre y apellido
+      const nameParts = formData.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Agregar campos personalizados
       (fields as any)[emailFieldId] = formData.email;
-    }
-    if (phoneFieldId && phoneFieldId.trim() !== '' && formData.phone) {
-      (fields as any)[phoneFieldId] = formData.phone;
-    }
-    if (companyFieldId && companyFieldId.trim() !== '' && formData.company) {
-      (fields as any)[companyFieldId] = formData.company;
-    }
+      
+      if (formData.phone) {
+        (fields as any)[phoneFieldId] = formData.phone;
+      }
+      
+      (fields as any)[firstNameFieldId] = firstName;
+      (fields as any)[lastNameFieldId] = lastName;
+      (fields as any)[contactFieldId] = formData.name;
+      (fields as any)[customerFieldId] = formData.name;
+      
+      if (formData.company) {
+        (fields as any)[organizationFieldId] = [formData.company];
+      }
+      
+      // Agregar detalles adicionales
+      const details = `Mensaje: ${formData.message}\nOrigen: ${formData.source || 'API'}`;
+      (fields as any)[detailsFieldId] = details;
 
-    const issueData: JiraIssueRequest = { fields };
+      console.log('Creating ticket with custom fields for project TI');
+      console.log('Project Key:', this.projectKey);
 
-    const response = await axios.post(
-      `${this.baseUrl}/rest/api/3/issue`,
-      issueData,
+      const issueData: JiraIssueRequest = { fields };
+
+      console.log('Sending to Jira:', JSON.stringify(issueData, null, 2));
+
+      const response = await axios.post(
+        `${this.baseUrl}/rest/api/3/issue`,
+        issueData,
+        {
+          headers: {
+            'Authorization': `Basic ${this.auth}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Jira API Error Details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        headers: error.response?.headers
+      });
+      
+      if (error.response?.data) {
+        console.error('Jira Error Response:', JSON.stringify(error.response.data, null, 2));
+      }
+      
+      throw error;
+    }
+  }
+
+  async testConnection(): Promise<any> {
+    const response = await axios.get(
+      `${this.baseUrl}/rest/api/3/project/${this.projectKey}`,
       {
         headers: {
           'Authorization': `Basic ${this.auth}`,
-          'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
       }
@@ -66,10 +119,35 @@ export class JiraService {
     return response.data;
   }
 
-  async testConnection(): Promise<any> {
+  async getFields(): Promise<any> {
     const response = await axios.get(
-      `${this.baseUrl}/rest/api/3/project/${this.projectKey}`,
+      `${this.baseUrl}/rest/api/3/field`,
       {
+        headers: {
+          'Authorization': `Basic ${this.auth}`,
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    // Filtrar solo campos personalizados
+    const customFields = response.data.filter((field: any) => field.custom);
+    
+    return customFields.map((field: any) => ({
+      id: field.id,
+      name: field.name,
+      type: field.schema?.type || 'unknown'
+    }));
+  }
+
+  async getCreateIssueMetadata(): Promise<any> {
+    const response = await axios.get(
+      `${this.baseUrl}/rest/api/3/issue/createmeta`,
+      {
+        params: {
+          projectKeys: this.projectKey,
+          expand: 'projects.issuetypes.fields'
+        },
         headers: {
           'Authorization': `Basic ${this.auth}`,
           'Accept': 'application/json'

@@ -101,9 +101,15 @@ export interface JiraWebhookPayload {
         name: string;
       };
       labels?: string[];
-      customfield_10000?: string; // Contact email
-      customfield_10001?: string; // Contact phone
-      customfield_10002?: string; // Contact company
+      // Campos personalizados de Jira (Proyecto TI)
+      customfield_10044?: string; // Email
+      customfield_10088?: string; // Phone number
+      customfield_10103?: string; // First name
+      customfield_10104?: string; // Last name
+      customfield_10288?: string; // Contact
+      customfield_10155?: string; // Customer
+      customfield_10002?: string[]; // Organizations
+      customfield_10090?: string; // Details
       [key: string]: unknown; // Allows adding dynamic custom fields
     };
   }

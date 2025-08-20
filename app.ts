@@ -14,7 +14,7 @@ class TicketService {
   private port: number;
 
   constructor() {
-    this.port = parseInt(process.env.PORT || '3001');
+    this.port = parseInt(process.env.PORT || '3000');
     this.app = express();
     this.setupMiddleware();
     this.setupRoutes();
@@ -38,19 +38,42 @@ class TicketService {
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
       'https://chat-grvb.onrender.com',
       'https://movonte.com',
-      'http://localhost:3000'
+      'http://localhost:3000',
+      'https://ticket-service.onrender.com',
+      'https://*.onrender.com'
     ];
 
-    this.app.use(cors({
-      origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
-      credentials: true
-    }));
+    // CORS configuration - más permisiva para desarrollo
+    if (process.env.NODE_ENV === 'development') {
+      // En desarrollo, permitir todos los orígenes
+      this.app.use(cors({
+        origin: true,
+        credentials: true
+      }));
+      console.log('CORS: Development mode - allowing all origins');
+    } else {
+      // En producción, usar la configuración específica
+      const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
+        'https://chat-grvb.onrender.com',
+        'https://movonte.com',
+        'http://localhost:3000',
+        'https://ticket-service.onrender.com',
+        'https://*.onrender.com'
+      ];
+
+      this.app.use(cors({
+        origin: (origin, callback) => {
+          console.log('CORS check for origin:', origin);
+          if (!origin || allowedOrigins.includes(origin) || origin.includes('onrender.com')) {
+            callback(null, true);
+          } else {
+            console.log('CORS blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+          }
+        },
+        credentials: true
+      }));
+    }
 
     // Logging
     this.app.use(morgan('combined'));
@@ -79,6 +102,8 @@ class TicketService {
     this.app.post('/api/tickets/create', ticketController.createTicket.bind(ticketController));
     this.app.post('/api/tickets/landing', ticketController.createTicketFromLanding.bind(ticketController));
     this.app.get('/api/tickets/test-jira', ticketController.testJiraConnection.bind(ticketController));
+    this.app.get('/api/tickets/jira-fields', ticketController.getJiraFields.bind(ticketController));
+    this.app.get('/api/tickets/create-metadata', ticketController.getCreateIssueMetadata.bind(ticketController));
 
     // Landing page form
     this.app.get('/landing-form', (req, res) => {
@@ -95,7 +120,8 @@ class TicketService {
           health: '/health',
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
-          testJira: 'GET /api/tickets/test-jira'
+          testJira: 'GET /api/tickets/test-jira',
+          jiraFields: 'GET /api/tickets/jira-fields'
         }
       });
     });
@@ -109,7 +135,8 @@ class TicketService {
           health: 'GET /health',
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
-          testJira: 'GET /api/tickets/test-jira'
+          testJira: 'GET /api/tickets/test-jira',
+          jiraFields: 'GET /api/tickets/jira-fields'
         }
       });
     });

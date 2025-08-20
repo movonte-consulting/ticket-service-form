@@ -282,4 +282,62 @@ export class LandingController {
       });
     }
   }
+
+  async getJiraFields(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('Getting Jira fields...');
+      
+      const fields = await this.jiraService.getFields();
+      
+      console.log('Jira fields retrieved successfully');
+      
+      res.json({
+        success: true,
+        message: 'Jira fields retrieved successfully',
+        fields: fields
+      });
+
+    } catch (error) {
+      console.error('Failed to get Jira fields:', error);
+      
+      let errorMessage = 'Failed to get Jira fields';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      res.status(500).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  }
+
+  async getCreateIssueMetadata(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('Getting create issue metadata...');
+      
+      const metadata = await this.jiraService.getCreateIssueMetadata();
+      
+      console.log('Create issue metadata retrieved successfully');
+      
+      res.json({
+        success: true,
+        message: 'Create issue metadata retrieved successfully',
+        metadata: metadata
+      });
+
+    } catch (error) {
+      console.error('Failed to get create issue metadata:', error);
+      
+      let errorMessage = 'Failed to get create issue metadata';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      res.status(500).json({
+        success: false,
+        error: errorMessage
+      });
+    }
+  }
 }
