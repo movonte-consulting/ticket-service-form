@@ -8,14 +8,14 @@ This service allows creating tickets in Jira automatically through REST endpoint
 
 ## Features
 
-- ✅ Automatic ticket creation in Jira
-- ✅ Form validation
-- ✅ CORS support configured
-- ✅ REST endpoints for integration
-- ✅ Integrated contact form
-- ✅ Health checks and monitoring
-- ✅ Detailed logging
-- ✅ Robust error handling
+-  Automatic ticket creation in Jira
+-  Form validation
+-  CORS support configured
+-  REST endpoints for integration
+-  Integrated contact form
+-  Health checks and monitoring
+-  Detailed logging
+-  Robust error handling
 
 ## Technologies
 
