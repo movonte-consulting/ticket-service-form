@@ -35,19 +35,26 @@ class TicketService {
       crossOriginResourcePolicy: { policy: "cross-origin" }
     }));
 
-    // CORS configuration
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-      'https://chat-grvb.onrender.com',
-      'https://movonte.com',
-      'https://movonte-consulting.github.io',
-      'http://localhost:3000',
-      'https://ticket-service.onrender.com',
-      'https://*.onrender.com'
-    ];
+    // CORS configuration - centralized and secure
+    this.setupCORS();
 
-    // CORS configuration - más permisiva para desarrollo
+    // Logging
+    this.app.use(morgan('combined'));
+
+    // Body parsing
+    this.app.use(express.json({ limit: '10mb' }));
+    this.app.use(express.urlencoded({ extended: true }));
+
+    // Static files
+    this.app.use(express.static('public'));
+  }
+
+  private setupCORS(): void {
+    // Define allowed origins once
+    const allowedOrigins = this.getAllowedOrigins();
+    
     if (process.env.NODE_ENV === 'development') {
-      // En desarrollo, permitir todos los orígenes
+      // In development, allow all origins
       this.app.use(cors({
         origin: true,
         credentials: true,
@@ -56,59 +63,20 @@ class TicketService {
       }));
       console.log('CORS: Development mode - allowing all origins');
     } else {
-      // En producción, usar la configuración específica
-      const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-        'https://chat-grvb.onrender.com',
-        'https://movonte.com',
-        'https://movonte-consulting.github.io',
-        'http://localhost:3000',
-        'http://127.0.0.1:5500',
-        'http://127.0.0.1:5501',
-        'http://127.0.0.1:5502',
-        'https://ticket-service.onrender.com',
-        'https://*.onrender.com'
-      ];
-
+      // In production, use strict CORS configuration
       this.app.use(cors({
         origin: (origin, callback) => {
           console.log('CORS check for origin:', origin);
           
-          // Permitir requests sin origin (como herramientas de desarrollo, Postman, etc.)
+          // Allow requests without origin (like development tools, Postman, etc.)
           if (!origin) {
             console.log('CORS: Allowing request without origin (development tool)');
             return callback(null, true);
           }
           
-          // Verificar si el origen está en la lista permitida
-          if (allowedOrigins.includes(origin)) {
-            console.log('CORS: Origin explicitly allowed:', origin);
-            return callback(null, true);
-          }
-          
-          // Verificar patrones de dominio con wildcards
-          const isAllowed = allowedOrigins.some(allowedOrigin => {
-            if (allowedOrigin.includes('*')) {
-              const pattern = allowedOrigin.replace('*', '.*');
-              const regex = new RegExp(pattern);
-              const matches = regex.test(origin);
-              if (matches) {
-                console.log('CORS: Origin matched wildcard pattern:', allowedOrigin, '->', origin);
-              }
-              return matches;
-            }
-            return allowedOrigin === origin;
-          });
-          
-          if (isAllowed) {
-            return callback(null, true);
-          }
-          
-          // Verificar dominios locales y de desarrollo
-          if (origin.includes('127.0.0.1') || 
-              origin.includes('localhost') || 
-              origin.includes('onrender.com') ||
-              origin.includes('github.io')) {
-            console.log('CORS: Origin allowed by development pattern:', origin);
+          // Check if origin is explicitly allowed
+          if (this.isOriginAllowed(origin, allowedOrigins)) {
+            console.log('CORS: Origin allowed:', origin);
             return callback(null, true);
           }
           
@@ -123,33 +91,33 @@ class TicketService {
         optionsSuccessStatus: 204
       }));
     }
+  }
 
-    // Middleware adicional para CORS como respaldo
-    this.app.use((req, res, next) => {
-      // Agregar headers CORS manualmente como respaldo
-      res.header('Access-Control-Allow-Origin', '*');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Origin, Accept');
-      res.header('Access-Control-Allow-Credentials', 'true');
-      
-      // Manejar requests OPTIONS (preflight)
-      if (req.method === 'OPTIONS') {
-        res.status(204).end();
-        return;
+  private getAllowedOrigins(): string[] {
+    return process.env.ALLOWED_ORIGINS?.split(',').map(origin => origin.trim()) || [
+      'https://chat-grvb.onrender.com',
+      'https://movonte.com',
+      'https://movonte-consulting.github.io',
+      'http://localhost:3000',
+      'https://ticket-service.onrender.com'
+    ];
+  }
+
+  private isOriginAllowed(origin: string, allowedOrigins: string[]): boolean {
+    // Check exact match first
+    if (allowedOrigins.includes(origin)) {
+      return true;
+    }
+    
+    // Check wildcard patterns
+    return allowedOrigins.some(allowedOrigin => {
+      if (allowedOrigin.includes('*')) {
+        const pattern = allowedOrigin.replace('*', '.*');
+        const regex = new RegExp(pattern);
+        return regex.test(origin);
       }
-      
-      next();
+      return false;
     });
-
-    // Logging
-    this.app.use(morgan('combined'));
-
-    // Body parsing
-    this.app.use(express.json({ limit: '10mb' }));
-    this.app.use(express.urlencoded({ extended: true }));
-
-    // Static files
-    this.app.use(express.static('public'));
   }
 
   private setupRoutes(): void {
@@ -233,16 +201,16 @@ class TicketService {
 
   public start(): void {
     this.app.listen(this.port, () => {
-      console.log('\n🎫 Ticket Service iniciado exitosamente!');
-      console.log(`🚀 Servidor ejecutándose en puerto ${this.port}`);
+      console.log('\n🎫 Ticket Service started successfully!');
+      console.log(`🚀 Server running on port ${this.port}`);
       console.log(`📡 URL: http://localhost:${this.port}`);
-      console.log('\n📋 Endpoints disponibles:');
+      console.log('\n📋 Available endpoints:');
       console.log(`   Health Check: http://localhost:${this.port}/health`);
       console.log(`   Create Ticket: POST http://localhost:${this.port}/api/tickets/create`);
       console.log(`   Landing Form: POST http://localhost:${this.port}/api/tickets/landing`);
       console.log(`   Test Jira: http://localhost:${this.port}/api/tickets/test-jira`);
       console.log(`   Landing Page: http://localhost:${this.port}/landing-form`);
-      console.log('\n✅ Servicio listo para crear tickets\n');
+      console.log('\n✅ Service ready to create tickets\n');
     });
   }
 }

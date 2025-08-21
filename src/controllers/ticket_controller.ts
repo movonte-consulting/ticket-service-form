@@ -9,7 +9,7 @@ export class LandingController {
     try {
       const { name, email, phone, company, message } = req.body;
 
-      // Validar campos requeridos
+      // Validate required fields
       if (!name || !email) {
         res.status(400).json({
           success: false,
@@ -18,7 +18,7 @@ export class LandingController {
         return;
       }
 
-      // Validar formato de email
+      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         res.status(400).json({
@@ -28,7 +28,7 @@ export class LandingController {
         return;
       }
 
-      // Preparar datos del formulario
+      // Prepare form data
       const formData: ContactFormData = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
@@ -45,7 +45,7 @@ export class LandingController {
         phone: formData.phone ? '***' : 'Not provided'
       });
 
-      // Crear ticket en Jira
+      // Create ticket in Jira
       const jiraResponse = await this.jiraService.createContactIssue(formData);
 
       console.log('Ticket created successfully:', jiraResponse.key);
@@ -84,12 +84,12 @@ export class LandingController {
 
       const errors: string[] = [];
 
-      // Validar nombre
+      // Validate name
       if (!name || name.trim().length < 2) {
         errors.push('Name must be at least 2 characters long');
       }
 
-      // Validar email
+      // Validate email
       if (!email) {
         errors.push('Email is required');
       } else {
@@ -99,7 +99,7 @@ export class LandingController {
         }
       }
 
-      // Validar teléfono (opcional pero si se proporciona debe ser válido)
+      // Validate phone (optional but if provided must be valid)
       if (phone && phone.trim()) {
         const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
         if (!phoneRegex.test(phone.trim())) {
@@ -107,7 +107,7 @@ export class LandingController {
         }
       }
 
-      // Validar empresa (opcional)
+      // Validate company (optional)
       if (company && company.trim().length < 2) {
         errors.push('Company name must be at least 2 characters long');
       }
@@ -136,7 +136,7 @@ export class LandingController {
 
   async getLandingFormFields(req: Request, res: Response): Promise<void> {
     try {
-      // Devolver información sobre los campos del formulario
+      // Return information about form fields
       const formFields = {
         required: ['name', 'email'],
         optional: ['phone', 'company', 'message'],
@@ -185,7 +185,7 @@ export class LandingController {
     try {
       const { name, email, phone, company, message } = req.body;
 
-      // Validar campos requeridos
+      // Validate required fields
       if (!name || !email) {
         res.status(400).json({
           success: false,
@@ -194,7 +194,7 @@ export class LandingController {
         return;
       }
 
-      // Validar formato de email
+      // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         res.status(400).json({
@@ -204,7 +204,7 @@ export class LandingController {
         return;
       }
 
-      // Preparar datos del formulario
+      // Prepare form data
       const formData: ContactFormData = {
         name: name.trim(),
         email: email.trim().toLowerCase(),
@@ -221,7 +221,7 @@ export class LandingController {
         phone: formData.phone ? '***' : 'Not provided'
       });
 
-      // Crear ticket en Jira
+      // Create ticket in Jira
       const jiraResponse = await this.jiraService.createContactIssue(formData);
 
       console.log('Ticket created successfully:', jiraResponse.key);

@@ -34,7 +34,7 @@ export class JiraService {
         labels: ['contacto-web', 'lead']
       };
 
-      // Solo usar campos básicos que siempre funcionan
+      // Only use basic fields that always work
       console.log('Creating ticket with basic fields only');
       console.log('Project Key:', this.projectKey);
       console.log('Customer info will be in description only');
@@ -97,7 +97,7 @@ export class JiraService {
       }
     );
 
-    // Filtrar solo campos personalizados
+    // Filter only custom fields
     const customFields = response.data.filter((field: any) => field.custom);
     
     return customFields.map((field: any) => ({
