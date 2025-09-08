@@ -98,7 +98,7 @@ class TicketService {
       'https://chat-grvb.onrender.com',
       'https://movonte.com',
       'https://movonte-consulting.github.io',
-      'http://localhost:3000',
+      'http://localhost:3000','http://3.136.35.172',
       'https://ticket-service.onrender.com'
     ];
   }
