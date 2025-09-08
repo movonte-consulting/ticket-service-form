@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import 'dotenv/config';
 import { LandingController } from './src/controllers/ticket_controller';
 import { HealthController } from './src/controllers/health_controller';
+import { ProjectController } from './src/controllers/project_controller';
 import { JiraService } from './src/services/jira_service';
 
 
@@ -126,6 +127,7 @@ class TicketService {
     
     // Initialize controllers
     const ticketController = new LandingController(jiraService);
+    const projectController = new ProjectController(jiraService);
     const healthController = new HealthController();
 
     // Health routes
@@ -138,6 +140,17 @@ class TicketService {
     this.app.get('/api/tickets/test-jira', ticketController.testJiraConnection.bind(ticketController));
     this.app.get('/api/tickets/jira-fields', ticketController.getJiraFields.bind(ticketController));
     this.app.get('/api/tickets/create-metadata', ticketController.getCreateIssueMetadata.bind(ticketController));
+
+    // Project management routes
+    this.app.get('/api/projects/current', projectController.getCurrentProject.bind(projectController));
+    this.app.post('/api/projects/set-active', projectController.setActiveProject.bind(projectController));
+    this.app.get('/api/projects/available', projectController.getAvailableProjects.bind(projectController));
+    this.app.get('/api/projects/search', projectController.searchProjects.bind(projectController));
+    this.app.get('/api/projects/:projectKey', projectController.getProjectDetails.bind(projectController));
+    this.app.get('/api/projects/validate-connection', projectController.validateConnection.bind(projectController));
+    this.app.get('/api/projects/status', projectController.getStatus.bind(projectController));
+    this.app.post('/api/projects/update-auth', projectController.updateAuthConfig.bind(projectController));
+    this.app.post('/api/projects/update-base-url', projectController.updateBaseUrl.bind(projectController));
 
     // Landing page form
     this.app.get('/landing-form', (req, res) => {
@@ -155,7 +168,15 @@ class TicketService {
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
           testJira: 'GET /api/tickets/test-jira',
-          jiraFields: 'GET /api/tickets/jira-fields'
+          jiraFields: 'GET /api/tickets/jira-fields',
+          // Project management endpoints
+          currentProject: 'GET /api/projects/current',
+          setActiveProject: 'POST /api/projects/set-active',
+          availableProjects: 'GET /api/projects/available',
+          searchProjects: 'GET /api/projects/search',
+          projectDetails: 'GET /api/projects/:projectKey',
+          validateConnection: 'GET /api/projects/validate-connection',
+          projectStatus: 'GET /api/projects/status'
         }
       });
     });
@@ -170,7 +191,15 @@ class TicketService {
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
           testJira: 'GET /api/tickets/test-jira',
-          jiraFields: 'GET /api/tickets/jira-fields'
+          jiraFields: 'GET /api/tickets/jira-fields',
+          // Project management endpoints
+          currentProject: 'GET /api/projects/current',
+          setActiveProject: 'POST /api/projects/set-active',
+          availableProjects: 'GET /api/projects/available',
+          searchProjects: 'GET /api/projects/search',
+          projectDetails: 'GET /api/projects/:projectKey',
+          validateConnection: 'GET /api/projects/validate-connection',
+          projectStatus: 'GET /api/projects/status'
         }
       });
     });
@@ -210,7 +239,15 @@ class TicketService {
       console.log(`   Landing Form: POST http://localhost:${this.port}/api/tickets/landing`);
       console.log(`   Test Jira: http://localhost:${this.port}/api/tickets/test-jira`);
       console.log(`   Landing Page: http://localhost:${this.port}/landing-form`);
-      console.log('\n✅ Service ready to create tickets\n');
+      console.log('\n📊 Project Management endpoints:');
+      console.log(`   Current Project: http://localhost:${this.port}/api/projects/current`);
+      console.log(`   Set Active Project: POST http://localhost:${this.port}/api/projects/set-active`);
+      console.log(`   Available Projects: http://localhost:${this.port}/api/projects/available`);
+      console.log(`   Search Projects: http://localhost:${this.port}/api/projects/search`);
+      console.log(`   Project Details: http://localhost:${this.port}/api/projects/:projectKey`);
+      console.log(`   Validate Connection: http://localhost:${this.port}/api/projects/validate-connection`);
+      console.log(`   Project Status: http://localhost:${this.port}/api/projects/status`);
+      console.log('\n✅ Service ready to create tickets and manage projects\n');
     });
   }
 }

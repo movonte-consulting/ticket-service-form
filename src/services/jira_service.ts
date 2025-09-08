@@ -1,27 +1,20 @@
 import axios from 'axios';
 import { JiraIssueRequest, JiraResponse, ContactFormData } from '../types';
-import process from 'process';
-import { Buffer } from 'buffer';
+import { ProjectManager } from './project_manager';
 
 export class JiraService {
-  private baseUrl: string;
-  private auth: string;
-  private projectKey: string;
+  private projectManager: ProjectManager;
 
   constructor() {
-    this.baseUrl = process.env.JIRA_BASE_URL || 'https://movonte.atlassian.net';
-    this.projectKey = process.env.JIRA_PROJECT_KEY || 'DEV';
-    
-    const email = process.env.JIRA_EMAIL || '';
-    const token = process.env.JIRA_API_TOKEN || '';
-    this.auth = Buffer.from(`${email}:${token}`).toString('base64');
+    this.projectManager = ProjectManager.getInstance();
   }
 
   async createContactIssue(formData: ContactFormData): Promise<JiraResponse> {
     try {
+      const currentProjectKey = this.projectManager.getCurrentProjectKey();
       const fields: JiraIssueRequest['fields'] = {
         project: {
-          key: this.projectKey
+          key: currentProjectKey
         },
         summary: `Web Contact: ${formData.name} - ${formData.company || 'No company'}`,
         description: this.formatContactDescriptionADF(formData),
@@ -36,7 +29,7 @@ export class JiraService {
 
       // Only use basic fields that always work
       console.log('Creating ticket with basic fields only');
-      console.log('Project Key:', this.projectKey);
+      console.log('Project Key:', currentProjectKey);
       console.log('Customer info will be in description only');
 
       const issueData: JiraIssueRequest = { fields };
@@ -44,11 +37,11 @@ export class JiraService {
       console.log('Sending to Jira:', JSON.stringify(issueData, null, 2));
 
       const response = await axios.post(
-        `${this.baseUrl}/rest/api/3/issue`,
+        `${this.projectManager.getBaseUrl()}/rest/api/3/issue`,
         issueData,
         {
           headers: {
-            'Authorization': `Basic ${this.auth}`,
+            'Authorization': `Basic ${this.projectManager.getAuth()}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           }
@@ -73,11 +66,12 @@ export class JiraService {
   }
 
   async testConnection(): Promise<any> {
+    const currentProjectKey = this.projectManager.getCurrentProjectKey();
     const response = await axios.get(
-      `${this.baseUrl}/rest/api/3/project/${this.projectKey}`,
+      `${this.projectManager.getBaseUrl()}/rest/api/3/project/${currentProjectKey}`,
       {
         headers: {
-          'Authorization': `Basic ${this.auth}`,
+          'Authorization': `Basic ${this.projectManager.getAuth()}`,
           'Accept': 'application/json'
         }
       }
@@ -88,10 +82,10 @@ export class JiraService {
 
   async getFields(): Promise<any> {
     const response = await axios.get(
-      `${this.baseUrl}/rest/api/3/field`,
+      `${this.projectManager.getBaseUrl()}/rest/api/3/field`,
       {
         headers: {
-          'Authorization': `Basic ${this.auth}`,
+          'Authorization': `Basic ${this.projectManager.getAuth()}`,
           'Accept': 'application/json'
         }
       }
@@ -108,15 +102,16 @@ export class JiraService {
   }
 
   async getCreateIssueMetadata(): Promise<any> {
+    const currentProjectKey = this.projectManager.getCurrentProjectKey();
     const response = await axios.get(
-      `${this.baseUrl}/rest/api/3/issue/createmeta`,
+      `${this.projectManager.getBaseUrl()}/rest/api/3/issue/createmeta`,
       {
         params: {
-          projectKeys: this.projectKey,
+          projectKeys: currentProjectKey,
           expand: 'projects.issuetypes.fields'
         },
         headers: {
-          'Authorization': `Basic ${this.auth}`,
+          'Authorization': `Basic ${this.projectManager.getAuth()}`,
           'Accept': 'application/json'
         }
       }
@@ -148,11 +143,11 @@ export class JiraService {
       };
 
       const response = await axios.post(
-        `${this.baseUrl}/rest/api/3/issue/${issueKey}/comment`,
+        `${this.projectManager.getBaseUrl()}/rest/api/3/issue/${issueKey}/comment`,
         commentData,
         {
           headers: {
-            'Authorization': `Basic ${this.auth}`,
+            'Authorization': `Basic ${this.projectManager.getAuth()}`,
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           }
@@ -194,5 +189,26 @@ export class JiraService {
           : undefined
       }))
     };
+  }
+
+  /**
+   * Obtiene el ProjectManager para gestión de proyectos
+   */
+  public getProjectManager(): ProjectManager {
+    return this.projectManager;
+  }
+
+  /**
+   * Obtiene el proyecto activo actual
+   */
+  public getCurrentProject() {
+    return this.projectManager.getCurrentProject();
+  }
+
+  /**
+   * Obtiene la clave del proyecto activo
+   */
+  public getCurrentProjectKey(): string {
+    return this.projectManager.getCurrentProjectKey();
   }
 }

@@ -129,7 +129,7 @@ export interface JiraWebhookPayload {
     bcc?: string | string[];
     attachments?: Array<{
       filename: string;
-      content: string | Buffer;
+      content: string | any; // Buffer type
       contentType?: string;
     }>;
     template?: 'jira_update' | 'chat_summary' | 'contact_form' | 'plain';
@@ -140,4 +140,43 @@ export interface JiraWebhookPayload {
     success: boolean;
     messageId?: string;
     error?: string;
+  }
+
+  // === Project Management Types ===
+  export interface JiraProject {
+    id: string;
+    key: string;
+    name: string;
+    description?: string;
+    projectTypeKey: string;
+    lead?: {
+      accountId: string;
+      displayName: string;
+    };
+    url?: string;
+    avatarUrls?: {
+      '16x16': string;
+      '24x24': string;
+      '32x32': string;
+      '48x48': string;
+    };
+  }
+
+  export interface ProjectConfig {
+    projectKey: string;
+    projectName: string;
+    baseUrl: string;
+    email: string;
+    token: string;
+    customFields?: {
+      [key: string]: string;
+    };
+  }
+
+  export interface ProjectManagerResponse {
+    success: boolean;
+    message?: string;
+    error?: string;
+    currentProject?: JiraProject;
+    availableProjects?: JiraProject[];
   }
