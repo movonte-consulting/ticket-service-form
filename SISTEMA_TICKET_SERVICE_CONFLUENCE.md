@@ -1,131 +1,131 @@
-# Sistema de Gestión de Tickets y Proyectos - Ticket Service Form
+# Ticket and Project Management System - Ticket Service Form
 
-## Resumen Ejecutivo
+## Executive Summary
 
-El **Ticket Service Form** es una API REST desarrollada en Node.js y TypeScript que automatiza la creación de tickets en Jira desde formularios de contacto y aplicaciones web. El sistema proporciona una solución integral para la gestión de proyectos Jira con capacidades de cambio dinámico de proyectos activos, creación automática de tickets y monitoreo de salud del servicio.
+The **Ticket Service Form** is a REST API developed in Node.js and TypeScript that automates ticket creation in Jira from contact forms and web applications. The system provides a comprehensive solution for Jira project management with dynamic active project switching capabilities, automatic ticket creation, and service health monitoring.
 
-## Arquitectura del Sistema
+## System Architecture
 
-### Tecnologías Principales
+### Main Technologies
 
-- **Backend**: Node.js 18+ con TypeScript
+- **Backend**: Node.js 18+ with TypeScript
 - **Framework**: Express.js
-- **Base de Datos**: Jira Cloud (API REST)
-- **Seguridad**: Helmet, CORS configurado
-- **Logging**: Morgan para monitoreo de peticiones
-- **Despliegue**: Amazon EC2 con Cloudflare DNS
+- **Database**: Jira Cloud (REST API)
+- **Security**: Helmet, CORS configured
+- **Logging**: Morgan for request monitoring
+- **Deployment**: Amazon EC2 with Cloudflare DNS
 
-### Estructura del Proyecto
+### Project Structure
 
 ```
 ticket-service/
 ├── src/
-│   ├── controllers/          # Controladores de API
+│   ├── controllers/          # API Controllers
 │   │   ├── health_controller.ts
 │   │   ├── project_controller.ts
 │   │   └── ticket_controller.ts
-│   ├── services/            # Servicios de negocio
+│   ├── services/            # Business Services
 │   │   ├── jira_service.ts
 │   │   └── project_manager.ts
-│   └── types/               # Definiciones de tipos
+│   └── types/               # Type Definitions
 │       └── index.ts
-├── public/                  # Archivos estáticos
-├── examples/               # Ejemplos de uso
-├── app.ts                  # Punto de entrada
+├── public/                  # Static Files
+├── examples/               # Usage Examples
+├── app.ts                  # Entry Point
 └── package.json
 ```
 
-## Funcionalidades Principales
+## Main Features
 
-### 1. Gestión de Proyectos Jira
+### 1. Jira Project Management
 
-El sistema implementa un **ProjectManager** singleton que permite:
+The system implements a **ProjectManager** singleton that allows:
 
-- **Cambio dinámico de proyectos activos** sin reinicio del servidor
-- **Cache inteligente** de proyectos disponibles (TTL: 5 minutos)
-- **Búsqueda de proyectos** por nombre, clave o descripción
-- **Validación de conexión** con Jira en tiempo real
-- **Actualización de configuración** de autenticación y URL base
+- **Dynamic active project switching** without server restart
+- **Intelligent cache** of available projects (TTL: 5 minutes)
+- **Project search** by name, key or description
+- **Real-time connection validation** with Jira
+- **Configuration updates** for authentication and base URL
 
-#### Endpoints de Gestión de Proyectos
+#### Project Management Endpoints
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/projects/current` | Obtiene el proyecto activo actual |
-| POST | `/api/projects/set-active` | Cambia el proyecto activo |
-| GET | `/api/projects/available` | Lista todos los proyectos disponibles |
-| GET | `/api/projects/search?query=` | Busca proyectos por criterio |
-| GET | `/api/projects/:projectKey` | Obtiene detalles de un proyecto específico |
-| GET | `/api/projects/validate-connection` | Valida la conexión con Jira |
-| GET | `/api/projects/status` | Obtiene el estado del ProjectManager |
-| POST | `/api/projects/update-auth` | Actualiza credenciales de autenticación |
-| POST | `/api/projects/update-base-url` | Actualiza la URL base de Jira |
+| GET | `/api/projects/current` | Gets the current active project |
+| POST | `/api/projects/set-active` | Changes the active project |
+| GET | `/api/projects/available` | Lists all available projects |
+| GET | `/api/projects/search?query=` | Searches projects by criteria |
+| GET | `/api/projects/:projectKey` | Gets details of a specific project |
+| GET | `/api/projects/validate-connection` | Validates connection with Jira |
+| GET | `/api/projects/status` | Gets the ProjectManager status |
+| POST | `/api/projects/update-auth` | Updates authentication credentials |
+| POST | `/api/projects/update-base-url` | Updates the Jira base URL |
 
-### 2. Creación Automática de Tickets
+### 2. Automatic Ticket Creation
 
-El sistema crea tickets en Jira con la siguiente estructura:
+The system creates tickets in Jira with the following structure:
 
-#### Campos del Ticket
-- **Proyecto**: Configurado dinámicamente por el ProjectManager
-- **Tipo**: Task (configurable)
-- **Prioridad**: Medium (configurable)
-- **Resumen**: "Web Contact: [Nombre] - [Empresa]"
-- **Descripción**: Formato ADF (Atlassian Document Format) con:
-  - Información de contacto completa
-  - Mensaje del usuario
-  - Timestamp de creación
-  - Fuente del contacto
-- **Etiquetas**: `contacto-web`, `lead`
+#### Ticket Fields
+- **Project**: Dynamically configured by the ProjectManager
+- **Type**: Task (configurable)
+- **Priority**: Medium (configurable)
+- **Summary**: "Web Contact: [Name] - [Company]"
+- **Description**: ADF (Atlassian Document Format) with:
+  - Complete contact information
+  - User message
+  - Creation timestamp
+  - Contact source
+- **Labels**: `contacto-web`, `lead`
 
-#### Endpoints de Creación de Tickets
+#### Ticket Creation Endpoints
 
-| Método | Endpoint | Descripción |
+| Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/tickets/create` | Crea ticket desde API externa |
-| POST | `/api/tickets/landing` | Crea ticket desde formulario web |
-| GET | `/api/tickets/test-jira` | Prueba la conexión con Jira |
-| GET | `/api/tickets/jira-fields` | Obtiene campos personalizados de Jira |
-| GET | `/api/tickets/create-metadata` | Obtiene metadatos para creación de issues |
+| POST | `/api/tickets/create` | Creates ticket from external API |
+| POST | `/api/tickets/landing` | Creates ticket from web form |
+| GET | `/api/tickets/test-jira` | Tests connection with Jira |
+| GET | `/api/tickets/jira-fields` | Gets Jira custom fields |
+| GET | `/api/tickets/create-metadata` | Gets metadata for issue creation |
 
-### 3. Formulario de Contacto Web
+### 3. Web Contact Form
 
-El sistema incluye un formulario HTML integrado accesible en `/landing-form` con:
+The system includes an integrated HTML form accessible at `/landing-form` with:
 
-- **Validación del lado del cliente y servidor**
-- **Campos requeridos**: Nombre, Email
-- **Campos opcionales**: Teléfono, Empresa, Mensaje
-- **Validación de formato de email**
-- **Integración directa con la API de tickets**
+- **Client and server-side validation**
+- **Required fields**: Name, Email
+- **Optional fields**: Phone, Company, Message
+- **Email format validation**
+- **Direct integration with ticket API**
 
-### 4. Monitoreo y Salud del Sistema
+### 4. System Monitoring and Health
 
 #### Health Checks
-- **Endpoint principal**: `GET /health`
-- **Endpoint alternativo**: `GET /api/tickets/health`
-- **Respuesta**: Estado del servicio, versión y endpoints disponibles
+- **Main endpoint**: `GET /health`
+- **Alternative endpoint**: `GET /api/tickets/health`
+- **Response**: Service status, version and available endpoints
 
-#### Logging y Monitoreo
-- **Logs de peticiones HTTP** con Morgan
-- **Logs detallados de errores** de Jira
-- **Monitoreo de CORS** y seguridad
-- **Trazabilidad completa** de creación de tickets
+#### Logging and Monitoring
+- **HTTP request logs** with Morgan
+- **Detailed Jira error logs**
+- **CORS and security monitoring**
+- **Complete ticket creation traceability**
 
-## Configuración del Sistema
+## System Configuration
 
-### Variables de Entorno Requeridas
+### Required Environment Variables
 
-#### Configuración del Servidor
+#### Server Configuration
 ```env
 PORT=3000
 NODE_ENV=production
 ```
 
-#### Configuración de CORS
+#### CORS Configuration
 ```env
 ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:3000
 ```
 
-#### Configuración de Jira (Obligatoria)
+#### Jira Configuration (Required)
 ```env
 JIRA_BASE_URL=https://movonte.atlassian.net
 JIRA_PROJECT_KEY=IT
@@ -133,7 +133,7 @@ JIRA_EMAIL=ticket-service@movonte.com
 JIRA_API_TOKEN=your-jira-api-token
 ```
 
-### Configuración Mínima para Funcionamiento
+### Minimum Configuration for Operation
 ```env
 PORT=3000
 NODE_ENV=production
@@ -143,41 +143,41 @@ JIRA_EMAIL=ticket-service@movonte.com
 JIRA_API_TOKEN=your-jira-api-token
 ```
 
-## Seguridad y Validaciones
+## Security and Validations
 
-### Medidas de Seguridad Implementadas
+### Implemented Security Measures
 
-1. **CORS Configurado**: Solo dominios autorizados pueden acceder a la API
-2. **Helmet**: Headers de seguridad configurados
-3. **Validación de Entrada**: Todos los endpoints validan datos de entrada
-4. **Autenticación Segura**: Tokens de API manejados de forma segura
-5. **Rate Limiting**: Protección contra abuso (configurable)
+1. **CORS Configured**: Only authorized domains can access the API
+2. **Helmet**: Security headers configured
+3. **Input Validation**: All endpoints validate input data
+4. **Secure Authentication**: API tokens handled securely
+5. **Rate Limiting**: Protection against abuse (configurable)
 
-### Validaciones de Datos
+### Data Validations
 
-- **Email**: Formato válido requerido
-- **Nombre**: Mínimo 2 caracteres
-- **Teléfono**: Formato opcional pero validado si se proporciona
-- **Empresa**: Mínimo 2 caracteres si se proporciona
-- **Mensaje**: Máximo 1000 caracteres
+- **Email**: Valid format required
+- **Name**: Minimum 2 characters
+- **Phone**: Optional format but validated if provided
+- **Company**: Minimum 2 characters if provided
+- **Message**: Maximum 1000 characters
 
-## API de Uso
+## API Usage
 
-### Ejemplo: Crear Ticket desde Landing Page
+### Example: Create Ticket from Landing Page
 
 ```bash
 curl -X POST https://form.movonte.com/api/tickets/landing \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Juan Pérez",
-    "email": "juan@empresa.com",
-    "phone": "+52 55 1234 5678",
-    "company": "Empresa ABC",
-    "message": "Necesito ayuda con mi cuenta"
+    "name": "John Doe",
+    "email": "john@company.com",
+    "phone": "+1 555 123 4567",
+    "company": "ABC Company",
+    "message": "I need help with my account"
   }'
 ```
 
-### Respuesta Exitosa
+### Success Response
 ```json
 {
   "success": true,
@@ -189,7 +189,7 @@ curl -X POST https://form.movonte.com/api/tickets/landing \
 }
 ```
 
-### Ejemplo: Cambiar Proyecto Activo
+### Example: Change Active Project
 
 ```bash
 curl -X POST https://form.movonte.com/api/projects/set-active \
@@ -199,29 +199,29 @@ curl -X POST https://form.movonte.com/api/projects/set-active \
   }'
 ```
 
-## Despliegue y Operación
+## Deployment and Operations
 
-### Infraestructura de Despliegue
+### Deployment Infrastructure
 
 #### Amazon EC2
-- **Instancia**: EC2 con Node.js 18+ configurado
-- **Sistema operativo**: Ubuntu/Linux
-- **Gestión de procesos**: PM2 para gestión de procesos Node.js
-- **Configuración**: Variables de entorno configuradas en el servidor
+- **Instance**: EC2 with Node.js 18+ configured
+- **Operating System**: Ubuntu/Linux
+- **Process Management**: PM2 for Node.js process management
+- **Configuration**: Environment variables configured on the server
 
 #### Cloudflare DNS
-- **Dominio principal**: `form.movonte.com`
-- **Configuración DNS**: A record apuntando a la IP de EC2
-- **SSL/TLS**: Certificado SSL automático de Cloudflare
-- **CDN**: Aceleración de contenido global
+- **Main Domain**: `form.movonte.com`
+- **DNS Configuration**: A record pointing to EC2 IP
+- **SSL/TLS**: Automatic SSL certificate from Cloudflare
+- **CDN**: Global content acceleration
 
-#### Integración con Frontend
-- **Frontend principal**: `movonte.com`
-- **API Backend**: `form.movonte.com`
-- **CORS configurado**: Para permitir peticiones desde `movonte.com`
-- **Arquitectura**: Separación de responsabilidades entre frontend y backend
+#### Frontend Integration
+- **Main Frontend**: `movonte.com`
+- **Backend API**: `form.movonte.com`
+- **CORS configured**: To allow requests from `movonte.com`
+- **Architecture**: Separation of responsibilities between frontend and backend
 
-### Arquitectura de Red
+### Network Architecture
 
 ```
 Internet
@@ -237,88 +237,77 @@ Node.js Application (Port 3000)
 Jira Cloud API
 ```
 
-#### Flujo de Peticiones
-1. **Usuario** accede a `movonte.com` (frontend)
-2. **Frontend** hace peticiones AJAX a `form.movonte.com` (backend)
-3. **Backend** procesa y crea tickets en Jira
-4. **Respuesta** regresa al frontend con confirmación
+#### Request Flow
+1. **User** accesses `movonte.com` (frontend)
+2. **Frontend** makes AJAX requests to `form.movonte.com` (backend)
+3. **Backend** processes and creates tickets in Jira
+4. **Response** returns to frontend with confirmation
 
-### Proceso de Despliegue
+### Deployment Process
 
-1. **Despliegue manual** en instancia EC2
-2. **Configuración de variables de entorno** en el servidor
-3. **Gestión de procesos** con PM2
-4. **Monitoreo de logs** en tiempo real
-5. **Actualización de DNS** a través de Cloudflare
+1. **Manual deployment** on EC2 instance
+2. **Environment variables configuration** on the server
+3. **Process management** with PM2
+4. **Real-time log monitoring**
+5. **DNS updates** through Cloudflare
 
-### Comandos de Desarrollo
+### Development Commands
 
 ```bash
-# Desarrollo
+# Development
 npm run dev
 
-# Compilación
+# Build
 npm run build
 
-# Producción
+# Production
 npm start
 
-# Modo watch
+# Watch mode
 npm run dev:watch
 ```
 
-## Casos de Uso
+## Use Cases
 
-### 1. Integración con Formularios Web
-- **Formularios de contacto** en `movonte.com`
-- **Landing pages de marketing** integradas
-- **Aplicaciones de soporte al cliente** desde el frontend principal
+### 1. Web Form Integration
+- **Contact forms** on `movonte.com`
+- **Marketing landing pages** integrated
+- **Customer support applications** from the main frontend
 
-### 2. Automatización de Procesos
-- Creación automática de tickets desde chatbots
-- Integración con sistemas CRM
-- Workflows de atención al cliente
+### 2. Process Automation
+- Automatic ticket creation from chatbots
+- CRM system integration
+- Customer service workflows
 
-### 3. Gestión Multi-Proyecto
-- Cambio dinámico entre proyectos de diferentes departamentos
-- Gestión centralizada de múltiples instancias de Jira
-- Administración de proyectos sin reinicio de servicios
+### 3. Multi-Project Management
+- Dynamic switching between projects from different departments
+- Centralized management of multiple Jira instances
+- Project administration without service restart
 
-## Monitoreo y Mantenimiento
+## Monitoring and Maintenance
 
-### Logs Disponibles
-- **Peticiones HTTP**: Todas las peticiones entrantes
-- **Errores de CORS**: Intentos de acceso no autorizados
-- **Creación de tickets**: Logs detallados de cada ticket creado
-- **Errores de Jira**: Diagnóstico completo de fallos de conexión
+### Available Logs
+- **HTTP Requests**: All incoming requests
+- **CORS Errors**: Unauthorized access attempts
+- **Ticket Creation**: Detailed logs of each ticket created
+- **Jira Errors**: Complete diagnosis of connection failures
 
-### Métricas de Salud
-- **Estado de conexión** con Jira
-- **Proyecto activo** actual
-- **Número de proyectos** disponibles
-- **Última actualización** del cache de proyectos
+### Health Metrics
+- **Connection status** with Jira
+- **Current active project**
+- **Number of available projects**
+- **Last cache update** of projects
 
-## Soporte y Documentación
+## Troubleshooting
 
-### Recursos Adicionales
-- **Ejemplos de uso**: Archivo `examples/project_management_example.js`
-- **Formulario de prueba**: Accesible en `https://form.movonte.com/landing-form`
-- **Documentación de API**: Endpoint raíz `https://form.movonte.com/` con lista completa de endpoints
-- **Frontend principal**: `https://movonte.com` (integración con formularios)
-
-### Resolución de Problemas
-
-#### Problemas Comunes
-1. **Error de CORS**: Verificar dominios en `ALLOWED_ORIGINS`
-2. **Error de autenticación Jira**: Validar credenciales y permisos
-3. **Proyecto no encontrado**: Verificar que el proyecto existe y es accesible
-4. **Campos personalizados**: Consultar metadatos con `/api/tickets/create-metadata`
-
-#### Contacto de Soporte
-Para reportar problemas o solicitar nuevas funcionalidades, crear un issue en el repositorio del proyecto.
+#### Common Issues
+1. **CORS Error**: Verify domains in `ALLOWED_ORIGINS`
+2. **Jira Authentication Error**: Validate credentials and permissions
+3. **Project Not Found**: Verify that the project exists and is accessible
+4. **Custom Fields**: Query metadata with `/api/tickets/create-metadata`
 
 ---
 
-**Desarrollado por Movonte**  
-**Versión**: 1.0.0  
-**Licencia**: Interna de Movonte
+**Developed by Movonte**  
+**Version**: 1.0.0  
+**License**: Internal Movonte
