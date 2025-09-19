@@ -7,7 +7,7 @@
 [![Express](https://img.shields.io/badge/Express-4.18+-lightgrey.svg)](https://expressjs.com/)
 [![Jira](https://img.shields.io/badge/Jira-Cloud-orange.svg)](https://www.atlassian.com/software/jira)
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Clone and install
@@ -25,19 +25,19 @@ npm run dev
 
 **Live Demo**: [form.movonte.com](https://form.movonte.com)
 
-## 📋 What This Does
+## What This Does
 
 This service automatically creates Jira tickets when users submit contact forms on your website. It's designed to streamline customer support and lead management by eliminating manual ticket creation.
 
 ### Key Capabilities
 
-- 🎫 **Automatic Ticket Creation** - Converts form submissions to Jira issues
-- 🔄 **Dynamic Project Management** - Switch between Jira projects without restart
-- 🛡️ **Enterprise Security** - CORS, Helmet, input validation
-- 📊 **Real-time Monitoring** - Health checks and detailed logging
-- 🌐 **Multi-domain Support** - Works with multiple frontend applications
+- **Automatic Ticket Creation** - Converts form submissions to Jira issues
+- **Dynamic Project Management** - Switch between Jira projects without restart
+- **Enterprise Security** - CORS, Helmet, input validation
+- **Real-time Monitoring** - Health checks and detailed logging
+- **Multi-domain Support** - Works with multiple frontend applications
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 Frontend (movonte.com) → API (form.movonte.com) → Jira Cloud
@@ -52,7 +52,7 @@ Frontend (movonte.com) → API (form.movonte.com) → Jira Cloud
 - **Deployment**: Amazon EC2 + Cloudflare DNS
 - **Process Management**: PM2
 
-## ⚙️ Configuration
+## Configuration
 
 ### Required Environment Variables
 
@@ -77,7 +77,7 @@ ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:30
 2. **Project Permissions**: User needs "Create Issues" permission
 3. **Custom Fields**: Optional, for enhanced ticket data
 
-## 🔌 API Reference
+## API Reference
 
 ### Core Endpoints
 
@@ -97,7 +97,7 @@ ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:30
 | `GET` | `/api/projects/available` | List all projects |
 | `GET` | `/api/projects/search?query=` | Search projects |
 
-## 💻 Usage Examples
+## Usage Examples
 
 ### JavaScript/TypeScript Integration
 
@@ -140,7 +140,7 @@ curl -X POST https://form.movonte.com/api/projects/set-active \
   -d '{"projectKey": "SUPPORT"}'
 ```
 
-## 🛠️ Development
+## Development
 
 ### Available Scripts
 
@@ -173,7 +173,7 @@ src/
 3. **Project Management**: Use `ProjectManager` singleton
 4. **Types**: Update `src/types/index.ts`
 
-## 🔧 Deployment
+## Deployment
 
 ### Production Setup (EC2)
 
@@ -206,7 +206,7 @@ pm2 startup
 2. **SSL**: Enable "Full (strict)" SSL mode
 3. **Caching**: Configure page rules for API endpoints
 
-## 📊 Monitoring
+## Monitoring
 
 ### Health Checks
 
@@ -224,7 +224,7 @@ curl https://form.movonte.com/api/tickets/test-jira
 - **Application Logs**: Console output with Morgan middleware
 - **Error Tracking**: Detailed Jira API error responses
 
-## 🔒 Security Features
+## Security Features
 
 - **CORS Protection**: Only authorized domains can access API
 - **Input Validation**: All endpoints validate request data
@@ -232,7 +232,7 @@ curl https://form.movonte.com/api/tickets/test-jira
 - **Rate Limiting**: Configurable request throttling
 - **Secure Tokens**: Jira API tokens handled securely
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -250,14 +250,14 @@ curl https://form.movonte.com/api/tickets/test-jira
 NODE_ENV=development npm run dev
 ```
 
-## 📈 Performance
+## Performance
 
 - **Response Time**: < 2s for ticket creation
 - **Concurrent Requests**: Handles 100+ simultaneous requests
 - **Cache**: Project data cached for 5 minutes
 - **Error Recovery**: Automatic retry for transient Jira API failures
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create feature branch: `git checkout -b feature/amazing-feature`
@@ -265,7 +265,7 @@ NODE_ENV=development npm run dev
 4. Push to branch: `git push origin feature/amazing-feature`
 5. Open Pull Request
 
-## 📄 License
+## License
 
 Internal project of Movonte. All rights reserved.
 
