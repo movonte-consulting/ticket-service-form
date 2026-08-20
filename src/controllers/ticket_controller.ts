@@ -1,9 +1,13 @@
 import { Request, Response } from 'express';
 import { JiraService } from '../services/jira_service';
+import { HubSpotService } from '../services/hubspot_service';
 import { ContactFormData, ContactApiResponse } from '../types';
 
 export class LandingController {
-  constructor(private jiraService: JiraService) {}
+  constructor(
+    private jiraService: JiraService,
+    private hubspotService: HubSpotService
+  ) {}
 
   async createTicketFromLanding(req: Request, res: Response): Promise<void> {
     try {
@@ -226,13 +230,22 @@ export class LandingController {
 
       console.log('Ticket created successfully:', jiraResponse.key);
 
+      // Send the same contact to HubSpot. Never blocks the ticket: upsertContact
+      // resolves with the error instead of throwing.
+      const hubspotResult = await this.hubspotService.upsertContact(formData);
+
+      if (!hubspotResult.success && !hubspotResult.skipped) {
+        console.error(`HubSpot sync failed for ${jiraResponse.key}:`, hubspotResult.error);
+      }
+
       const response: ContactApiResponse = {
         success: true,
         jiraIssue: {
           id: jiraResponse.id,
           key: jiraResponse.key,
           url: `${process.env.JIRA_BASE_URL}/browse/${jiraResponse.key}`
-        }
+        },
+        hubspotContact: hubspotResult
       };
 
       res.status(201).json(response);
@@ -281,6 +294,40 @@ export class LandingController {
         error: errorMessage
       });
     }
+  }
+
+  async testHubSpotConnection(req: Request, res: Response): Promise<void> {
+    console.log('Testing HubSpot connection...');
+
+    const testResult = await this.hubspotService.testConnection();
+
+    if (testResult.skipped) {
+      res.status(503).json({
+        success: false,
+        error: 'HubSpot is not configured (missing HUBSPOT_ACCESS_TOKEN)'
+      });
+      return;
+    }
+
+    if (!testResult.success) {
+      console.error('HubSpot connection test failed:', testResult.error);
+
+      res.status(500).json({
+        success: false,
+        error: testResult.error,
+        missingScopes: testResult.missingScopes
+      });
+      return;
+    }
+
+    console.log(`HubSpot connection test successful (hub ${testResult.hubId})`);
+
+    res.json({
+      success: true,
+      message: 'HubSpot connection successful',
+      hubId: testResult.hubId,
+      scopes: testResult.scopes
+    });
   }
 
   async getJiraFields(req: Request, res: Response): Promise<void> {

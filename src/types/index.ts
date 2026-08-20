@@ -82,8 +82,34 @@ export interface JiraWebhookPayload {
       key: string;
       url: string;
     };
+    hubspotContact?: HubSpotContactResult;
     error?: string;
     fallbackEmail?: boolean;
+  }
+
+  // === HubSpot Types ===
+  export interface HubSpotContactResult {
+    success: boolean;
+    /** ID del contacto en HubSpot */
+    contactId?: string;
+    /** true si se creó, false si ya existía y se actualizó */
+    created?: boolean;
+    /** true cuando el envío se omitió por falta de configuración */
+    skipped?: boolean;
+    error?: string;
+  }
+
+  export interface HubSpotConnectionResult {
+    success: boolean;
+    /** ID del portal (hub) al que pertenece el token */
+    hubId?: number;
+    /** Scopes concedidos a la Private App */
+    scopes?: string[];
+    /** Scopes requeridos que no fueron concedidos */
+    missingScopes?: string[];
+    /** true cuando la validación se omitió por falta de configuración */
+    skipped?: boolean;
+    error?: string;
   }
   
   // === Jira Types ===

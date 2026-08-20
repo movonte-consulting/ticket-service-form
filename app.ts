@@ -7,6 +7,7 @@ import { LandingController } from './src/controllers/ticket_controller';
 import { HealthController } from './src/controllers/health_controller';
 import { ProjectController } from './src/controllers/project_controller';
 import { JiraService } from './src/services/jira_service';
+import { HubSpotService } from './src/services/hubspot_service';
 
 
 class TicketService {
@@ -124,9 +125,10 @@ class TicketService {
   private setupRoutes(): void {
     // Initialize services
     const jiraService = new JiraService();
-    
+    const hubspotService = new HubSpotService();
+
     // Initialize controllers
-    const ticketController = new LandingController(jiraService);
+    const ticketController = new LandingController(jiraService, hubspotService);
     const projectController = new ProjectController(jiraService);
     const healthController = new HealthController();
 
@@ -138,6 +140,7 @@ class TicketService {
     this.app.post('/api/tickets/create', ticketController.createTicket.bind(ticketController));
     this.app.post('/api/tickets/landing', ticketController.createTicketFromLanding.bind(ticketController));
     this.app.get('/api/tickets/test-jira', ticketController.testJiraConnection.bind(ticketController));
+    this.app.get('/api/tickets/test-hubspot', ticketController.testHubSpotConnection.bind(ticketController));
     this.app.get('/api/tickets/jira-fields', ticketController.getJiraFields.bind(ticketController));
     this.app.get('/api/tickets/create-metadata', ticketController.getCreateIssueMetadata.bind(ticketController));
 
@@ -168,6 +171,7 @@ class TicketService {
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
           testJira: 'GET /api/tickets/test-jira',
+          testHubSpot: 'GET /api/tickets/test-hubspot',
           jiraFields: 'GET /api/tickets/jira-fields',
           // Project management endpoints
           currentProject: 'GET /api/projects/current',
@@ -191,6 +195,7 @@ class TicketService {
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
           testJira: 'GET /api/tickets/test-jira',
+          testHubSpot: 'GET /api/tickets/test-hubspot',
           jiraFields: 'GET /api/tickets/jira-fields',
           // Project management endpoints
           currentProject: 'GET /api/projects/current',
@@ -238,7 +243,9 @@ class TicketService {
       console.log(`   Create Ticket: POST http://localhost:${this.port}/api/tickets/create`);
       console.log(`   Landing Form: POST http://localhost:${this.port}/api/tickets/landing`);
       console.log(`   Test Jira: http://localhost:${this.port}/api/tickets/test-jira`);
+      console.log(`   Test HubSpot: http://localhost:${this.port}/api/tickets/test-hubspot`);
       console.log(`   Landing Page: http://localhost:${this.port}/landing-form`);
+      console.log(`\n🔗 HubSpot sync: ${process.env.HUBSPOT_ACCESS_TOKEN ? 'enabled' : 'disabled (missing HUBSPOT_ACCESS_TOKEN)'}`);
       console.log('\n📊 Project Management endpoints:');
       console.log(`   Current Project: http://localhost:${this.port}/api/projects/current`);
       console.log(`   Set Active Project: POST http://localhost:${this.port}/api/projects/set-active`);

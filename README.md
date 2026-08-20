@@ -67,6 +67,11 @@ JIRA_PROJECT_KEY=IT
 JIRA_EMAIL=ticket-service@movonte.com
 JIRA_API_TOKEN=your-jira-api-token
 
+# HubSpot Integration (optional)
+HUBSPOT_ACCESS_TOKEN=your-hubspot-private-app-token
+HUBSPOT_BASE_URL=https://api.hubapi.com
+HUBSPOT_TIMEOUT_MS=8000
+
 # CORS (comma-separated)
 ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:3000
 ```
@@ -77,6 +82,31 @@ ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:30
 2. **Project Permissions**: User needs "Create Issues" permission
 3. **Custom Fields**: Optional, for enhanced ticket data
 
+### HubSpot Setup Requirements
+
+`POST /api/tickets/create` also registers the contact in the HubSpot CRM, so a
+single form submission produces both a Jira ticket and a HubSpot contact.
+
+1. **Private App**: Create one in HubSpot (Settings → Integrations → Private Apps)
+2. **Scopes**: `crm.objects.contacts.write` is the only one required — creating
+   and updating are both writes, and `/api/tickets/test-hubspot` validates the
+   token through the private-app token-info endpoint rather than reading contacts
+3. **Token**: Copy it into `HUBSPOT_ACCESS_TOKEN` in `.env` (note: `.env.save` is
+   a tracked backup copy, the app only reads `.env`)
+
+Behaviour notes:
+
+- If `HUBSPOT_ACCESS_TOKEN` is empty the sync is skipped and only the Jira ticket is created.
+- HubSpot failures never break the ticket: the error is logged and returned in
+  `hubspotContact.error`, while the response still reports the created issue.
+- Contacts are matched by email — an existing contact is updated instead of duplicated.
+- The form's `name` field is split into `firstname` / `lastname`; `lifecyclestage`
+  is only set on creation so existing contacts don't get moved backwards.
+- This is a server-to-server sync without the tracking cookie, so contacts land
+  with *Original source = Offline sources*. Campaign attribution would require
+  installing the HubSpot tracking script on the landing and forwarding the
+  `hubspotutk` cookie — out of scope for now.
+
 ## API Reference
 
 ### Core Endpoints
@@ -84,9 +114,10 @@ ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:30
 | Method | Endpoint | Purpose |
 |--------|----------|---------|
 | `POST` | `/api/tickets/landing` | Create ticket from web form |
-| `POST` | `/api/tickets/create` | Create ticket from API |
+| `POST` | `/api/tickets/create` | Create ticket from API **+ sync contact to HubSpot** |
 | `GET` | `/health` | Service health check |
 | `GET` | `/api/tickets/test-jira` | Test Jira connection |
+| `GET` | `/api/tickets/test-hubspot` | Test HubSpot connection |
 
 ### Project Management
 

@@ -7,9 +7,9 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/app.js",
-    "dev": "ts-node src/app.ts",
+    "dev": "ts-node app.ts",
     "watch": "tsc --watch",
-    "dev:watch": "nodemon --exec ts-node src/app.ts",
+    "dev:watch": "nodemon --exec ts-node app.ts",
     "test:jira": "ts-node src/tests/test-jira.ts",
     "list-assistants": "ts-node src/tests/list-assistants.ts",
     "test-openai": "ts-node src/tests/test-openai.ts",
