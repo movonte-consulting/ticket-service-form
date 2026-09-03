@@ -111,17 +111,6 @@ export interface JiraWebhookPayload {
     skipped?: boolean;
     error?: string;
   }
-
-  // === Giveaway Form Types ===
-  // Entries for a specific contest/promo (e.g. the Jira Life Podcast Giveaway).
-  // Always routed to JIRA_GIVEAWAY_PROJECT_KEY, never to the shared contact project.
-  export interface GiveawayFormData {
-    name: string;
-    email: string;
-    company?: string;
-    entitlement: string;
-    source?: string;
-  }
   
   // === Jira Types ===
   export interface JiraIssueRequest {

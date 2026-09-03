@@ -72,12 +72,6 @@ HUBSPOT_ACCESS_TOKEN=your-hubspot-private-app-token
 HUBSPOT_BASE_URL=https://api.hubapi.com
 HUBSPOT_TIMEOUT_MS=8000
 
-# Giveaway/contest entries (POST /api/tickets/giveaway) always go to this
-# project, independent of JIRA_PROJECT_KEY / the active project set via
-# /api/projects/set-active. Required for that endpoint to work — it errors
-# out instead of silently falling back to the shared contact project.
-JIRA_GIVEAWAY_PROJECT_KEY=your-giveaway-project-key
-
 # CORS (comma-separated)
 ALLOWED_ORIGINS=https://movonte.com,https://form.movonte.com,http://localhost:3000
 ```
@@ -121,7 +115,6 @@ Behaviour notes:
 |--------|----------|---------|
 | `POST` | `/api/tickets/landing` | Create ticket from web form |
 | `POST` | `/api/tickets/create` | Create ticket from API **+ sync contact to HubSpot** |
-| `POST` | `/api/tickets/giveaway` | Create a giveaway/contest entry — always in `JIRA_GIVEAWAY_PROJECT_KEY`, never the shared contact project |
 | `GET` | `/health` | Service health check |
 | `GET` | `/api/tickets/test-jira` | Test Jira connection |
 | `GET` | `/api/tickets/test-hubspot` | Test HubSpot connection |
