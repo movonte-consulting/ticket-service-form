@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { LandingController } from './src/controllers/ticket_controller';
 import { HealthController } from './src/controllers/health_controller';
 import { ProjectController } from './src/controllers/project_controller';
+import { GiveawayController } from './src/controllers/giveaway_controller';
 import { JiraService } from './src/services/jira_service';
 import { HubSpotService } from './src/services/hubspot_service';
 
@@ -130,6 +131,7 @@ class TicketService {
     // Initialize controllers
     const ticketController = new LandingController(jiraService, hubspotService);
     const projectController = new ProjectController(jiraService);
+    const giveawayController = new GiveawayController(jiraService);
     const healthController = new HealthController();
 
     // Health routes
@@ -143,6 +145,11 @@ class TicketService {
     this.app.get('/api/tickets/test-hubspot', ticketController.testHubSpotConnection.bind(ticketController));
     this.app.get('/api/tickets/jira-fields', ticketController.getJiraFields.bind(ticketController));
     this.app.get('/api/tickets/create-metadata', ticketController.getCreateIssueMetadata.bind(ticketController));
+
+    // Giveaway routes — always routed to JIRA_GIVEAWAY_PROJECT_KEY, never the
+    // shared contact project. Kept as its own route/controller/service method
+    // so it can't be affected by the ProjectManager singleton's active project.
+    this.app.post('/api/tickets/giveaway', giveawayController.createGiveawayTicket.bind(giveawayController));
 
     // Project management routes
     this.app.get('/api/projects/current', projectController.getCurrentProject.bind(projectController));
@@ -170,6 +177,7 @@ class TicketService {
           health: '/health',
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
+          giveaway: 'POST /api/tickets/giveaway',
           testJira: 'GET /api/tickets/test-jira',
           testHubSpot: 'GET /api/tickets/test-hubspot',
           jiraFields: 'GET /api/tickets/jira-fields',
@@ -194,6 +202,7 @@ class TicketService {
           health: 'GET /health',
           createTicket: 'POST /api/tickets/create',
           landingForm: 'POST /api/tickets/landing',
+          giveaway: 'POST /api/tickets/giveaway',
           testJira: 'GET /api/tickets/test-jira',
           testHubSpot: 'GET /api/tickets/test-hubspot',
           jiraFields: 'GET /api/tickets/jira-fields',
@@ -242,6 +251,7 @@ class TicketService {
       console.log(`   Health Check: http://localhost:${this.port}/health`);
       console.log(`   Create Ticket: POST http://localhost:${this.port}/api/tickets/create`);
       console.log(`   Landing Form: POST http://localhost:${this.port}/api/tickets/landing`);
+      console.log(`   Giveaway Entry: POST http://localhost:${this.port}/api/tickets/giveaway`);
       console.log(`   Test Jira: http://localhost:${this.port}/api/tickets/test-jira`);
       console.log(`   Test HubSpot: http://localhost:${this.port}/api/tickets/test-hubspot`);
       console.log(`   Landing Page: http://localhost:${this.port}/landing-form`);

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { JiraIssueRequest, JiraResponse, ContactFormData } from '../types';
+import { JiraIssueRequest, JiraResponse, ContactFormData, GiveawayFormData } from '../types';
 import { ProjectManager } from './project_manager';
 
 export class JiraService {
@@ -160,6 +160,99 @@ export class JiraService {
       console.error(`Error adding comment to ${issueKey}:`, error);
       throw error;
     }
+  }
+
+  /**
+   * Creates an issue for a specific contest/giveaway entry.
+   *
+   * Unlike createContactIssue(), this does NOT read the project key from
+   * ProjectManager's shared `currentProject` state — that state is a
+   * process-wide singleton, so mutating it here would risk a regular
+   * contact-form submission landing in the giveaway project (or vice versa)
+   * if requests interleave. The project key is fixed via
+   * JIRA_GIVEAWAY_PROJECT_KEY and passed straight into the Jira API call.
+   */
+  async createGiveawayIssue(formData: GiveawayFormData): Promise<JiraResponse> {
+    const giveawayProjectKey = process.env.JIRA_GIVEAWAY_PROJECT_KEY;
+
+    if (!giveawayProjectKey) {
+      throw new Error(
+        'JIRA_GIVEAWAY_PROJECT_KEY is not configured. Set it in the environment before accepting giveaway entries.'
+      );
+    }
+
+    try {
+      const fields: JiraIssueRequest['fields'] = {
+        project: {
+          key: giveawayProjectKey
+        },
+        summary: `Giveaway Entry: ${formData.name} - ${formData.entitlement}`,
+        description: this.formatGiveawayDescriptionADF(formData),
+        issuetype: {
+          name: 'Task'
+        },
+        priority: {
+          name: 'Medium'
+        },
+        labels: ['giveaway', 'jira-life-podcast']
+      };
+
+      console.log('Creating giveaway ticket');
+      console.log('Giveaway Project Key:', giveawayProjectKey);
+
+      const issueData: JiraIssueRequest = { fields };
+
+      const response = await axios.post(
+        `${this.projectManager.getBaseUrl()}/rest/api/3/issue`,
+        issueData,
+        {
+          headers: {
+            'Authorization': `Basic ${this.projectManager.getAuth()}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.error('Jira API Error Details (giveaway):', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+
+      if (error.response?.data) {
+        console.error('Jira Error Response:', JSON.stringify(error.response.data, null, 2));
+      }
+
+      throw error;
+    }
+  }
+
+  private formatGiveawayDescriptionADF(formData: GiveawayFormData) {
+    const lines = [
+      `Jira Life Podcast Giveaway entry`,
+      `Name: ${formData.name}`,
+      `Email: ${formData.email}`,
+      `Company: ${formData.company || 'Not specified'}`,
+      `Entitlement Number: ${formData.entitlement}`,
+      `Source: ${formData.source || 'workledger.html'}`,
+      '',
+      `---`,
+      `Entry automatically created on ${new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' })}`
+    ];
+
+    return {
+      version: 1 as const,
+      type: 'doc' as const,
+      content: lines.map((text) => ({
+        type: 'paragraph' as const,
+        content: text
+          ? [{ type: 'text' as const, text }]
+          : undefined
+      }))
+    };
   }
 
   private formatContactDescriptionADF(formData: ContactFormData) {
